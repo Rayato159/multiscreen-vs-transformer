@@ -71,6 +71,14 @@ Benchmark command:
 cargo run --release --features cuda --bin compare -- --steps 1000
 ```
 
+## Training Machine 🖥️
+
+| Part | Spec |
+| --- | --- |
+| CPU | AMD Ryzen 5 5600X 6-Core Processor, 12 logical threads |
+| GPU | NVIDIA GeForce RTX 4070, 12,282 MiB VRAM |
+| Memory | 31.92 GiB RAM |
+
 ## Model Files 🔐
 
 No shared-params nonsense. Each model has its own checkpoint and magic header.
