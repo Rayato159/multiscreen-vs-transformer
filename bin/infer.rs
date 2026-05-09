@@ -25,7 +25,10 @@ fn init_console_for_unicode() {
 pub fn init_console() {
     init_console_for_unicode();
 }
-use multiscreen_testing::cli::{CliConfig, run_inference_cli};
+use multiscreen_testing::{
+    cli::{CliConfig, run_inference_cli},
+    model_kind::ModelKind,
+};
 
 fn main() -> Result<()> {
     // Initialize console for Unicode/Thai support
@@ -41,7 +44,32 @@ fn main() -> Result<()> {
         match args[i].as_str() {
             "--model" | "-m" => {
                 if i + 1 < args.len() {
-                    config.param_path = args[i + 1].clone();
+                    let value = &args[i + 1];
+                    if let Some(model_kind) = ModelKind::parse(value) {
+                        config.model_kind = model_kind;
+                    } else {
+                        config.param_path = Some(value.clone());
+                    }
+                    i += 1;
+                }
+            }
+            "--arch" | "--kind" => {
+                if i + 1 < args.len() {
+                    let value = &args[i + 1];
+                    if let Some(model_kind) = ModelKind::parse(value) {
+                        config.model_kind = model_kind;
+                    } else {
+                        eprintln!(
+                            "Unknown model architecture: {value}. Expected multiscreen or transformer."
+                        );
+                        std::process::exit(1);
+                    }
+                    i += 1;
+                }
+            }
+            "--weights" | "-w" => {
+                if i + 1 < args.len() {
+                    config.param_path = Some(args[i + 1].clone());
                     i += 1;
                 }
             }
@@ -86,15 +114,17 @@ fn main() -> Result<()> {
 }
 
 fn print_cli_help() {
-    println!("Tiny Multiscreen LM - Inference CLI (Word-level Tokenization)");
+    println!("🚀 Tiny LM - Inference CLI (Word-level Tokenization)");
     println!();
     println!("Usage:");
     println!("  cargo run --bin infer -- [OPTIONS]");
     println!();
     println!("Options:");
     println!(
-        "  -m, --model <PATH>          Path to model parameters (default: models/sat_multiscreen.params)"
+        "  -m, --model <KIND|PATH>     Model kind (multiscreen/transformer), or legacy checkpoint path"
     );
+    println!("      --arch, --kind <KIND>   Model architecture: multiscreen or transformer");
+    println!("  -w, --weights <PATH>        Checkpoint path (default depends on model kind)");
     println!(
         "  -d, --dataset <PATH>        Path to dataset CSV for vocabulary (default: exam/sat_world_and_us_history.csv)"
     );
@@ -107,15 +137,18 @@ fn print_cli_help() {
     println!("  -h, --help                 Show this help message");
     println!();
     println!("Note: This version uses word-level tokenization.");
-    println!("      Interactive mode allows you to chat with the model.");
-    println!("      The model generates complete sentences as responses.");
+    println!("      Interactive mode lets you chat with the model.");
+    println!("      The model generates token-by-token text responses.");
     println!();
     println!("Examples:");
     println!("  cargo run --bin infer -- --help");
-    println!("  cargo run --bin infer -- -m custom.params");
+    println!("  cargo run --bin infer -- --model multiscreen -i");
+    println!("  cargo run --bin infer -- --model transformer -i");
+    println!("  cargo run --bin infer -- --model multiscreen --weights custom.params");
     println!();
     println!("To train and evaluate the model:");
-    println!("  cargo run --release --features cuda --bin train");
+    println!("  cargo run --release --features cuda --bin train -- --model multiscreen");
+    println!("  cargo run --release --features cuda --bin train -- --model transformer");
     println!();
     println!("With CUDA:");
     println!("  cargo run --bin infer --features cuda -- --help");

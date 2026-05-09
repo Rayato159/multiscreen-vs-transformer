@@ -15,6 +15,10 @@ path = "bin/train.rs"
 name = "infer"
 path = "bin/infer.rs"
 
+[[bin]]
+name = "compare"
+path = "bin/compare.rs"
+
 [features]
 default = []
 cuda = ["candle-core/cuda", "candle-nn/cuda"]

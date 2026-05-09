@@ -1,4 +1,4 @@
-use crate::model::{MultiScreenLm, cross_entropy_loss};
+use crate::{lm::LanguageModel, multiscreen::cross_entropy_loss};
 use candle_core::{Device, Result, Tensor, bail};
 use std::collections::HashMap;
 use std::io::BufReader;
@@ -47,6 +47,12 @@ impl Vocabulary {
         id
     }
 
+    pub fn add_text(&mut self, text: &str) {
+        for token in split_text_tokens(text) {
+            self.add_token(&token);
+        }
+    }
+
     pub fn get_id(&self, token: &str) -> u32 {
         self.token_to_id.get(token).copied().unwrap_or(UNK_TOKEN)
     }
@@ -63,35 +69,29 @@ impl Vocabulary {
         let mut tokens = Vec::new();
         tokens.push(BOS_TOKEN);
 
-        // Split on whitespace and preserve punctuation
-        for word in text.split_whitespace() {
-            // Split on common punctuation marks
-            let parts: Vec<&str> = word
-                .split(|c: char| {
-                    c == '.'
-                        || c == ','
-                        || c == '!'
-                        || c == '?'
-                        || c == ':'
-                        || c == ';'
-                        || c == '('
-                        || c == ')'
-                        || c == '['
-                        || c == ']'
-                        || c == '"'
-                        || c == '\''
-                })
-                .filter(|s| !s.is_empty())
-                .collect();
-
-            for part in parts {
-                tokens.push(self.get_id(part));
-            }
+        for token in split_text_tokens(text) {
+            tokens.push(self.get_id(&token));
         }
 
         tokens.push(EOS_TOKEN);
         tokens
     }
+}
+
+fn split_text_tokens(text: &str) -> Vec<String> {
+    text.split_whitespace()
+        .flat_map(|word| {
+            word.split(|c: char| {
+                matches!(
+                    c,
+                    '.' | ',' | '!' | '?' | ':' | ';' | '(' | ')' | '[' | ']' | '"' | '\''
+                )
+            })
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .collect::<Vec<_>>()
+        })
+        .collect()
 }
 
 pub struct ExamDataset {
@@ -170,7 +170,7 @@ impl ExamDataset {
             let e = e_idx.and_then(|i| record.get(i)).unwrap_or("");
             let answer = answer_idx.and_then(|i| record.get(i)).unwrap_or("");
 
-            all_records.push((
+            let stored_record = (
                 subject.to_string(),
                 prompt.to_string(),
                 a.to_string(),
@@ -179,14 +179,10 @@ impl ExamDataset {
                 d.to_string(),
                 e.to_string(),
                 answer.to_string(),
-            ));
-
-            // Build vocabulary from all text fields
-            for text in &[subject, prompt, a, b, c, d, e, answer] {
-                for word in text.split_whitespace() {
-                    vocab.add_token(word);
-                }
-            }
+            );
+            let formatted_record = format_record(&stored_record);
+            vocab.add_text(&formatted_record);
+            all_records.push(stored_record);
         }
 
         // Second pass: tokenize and split into train/val/test (70/15/15)
@@ -198,11 +194,16 @@ impl ExamDataset {
         let mut test_examples = 0;
 
         for (idx, (subject, prompt, a, b, c, d, e, answer)) in all_records.iter().enumerate() {
-            // Create formatted record
-            let formatted_record = format!(
-                "Subject: {}\nQuestion: {}\nA. {}\nB. {}\nC. {}\nD. {}\nE. {}\nAnswer: {}",
-                subject, prompt, a, b, c, d, e, answer
-            );
+            let formatted_record = format_record(&(
+                subject.clone(),
+                prompt.clone(),
+                a.clone(),
+                b.clone(),
+                c.clone(),
+                d.clone(),
+                e.clone(),
+                answer.clone(),
+            ));
 
             let tokens = vocab.tokenize(&formatted_record);
 
@@ -300,8 +301,8 @@ impl ExamDataset {
     }
 }
 
-pub fn evaluate_test_metrics(
-    model: &MultiScreenLm,
+pub fn evaluate_test_metrics<M: LanguageModel>(
+    model: &M,
     dataset: &ExamDataset,
     seq_len: usize,
     device: &Device,
@@ -309,8 +310,8 @@ pub fn evaluate_test_metrics(
     evaluate_tokens(model, &dataset.test, seq_len, device)
 }
 
-pub fn evaluate_val_metrics(
-    model: &MultiScreenLm,
+pub fn evaluate_val_metrics<M: LanguageModel>(
+    model: &M,
     dataset: &ExamDataset,
     seq_len: usize,
     device: &Device,
@@ -318,8 +319,8 @@ pub fn evaluate_val_metrics(
     evaluate_tokens(model, &dataset.val, seq_len, device)
 }
 
-pub fn benchmark_inference(
-    model: &MultiScreenLm,
+pub fn benchmark_inference<M: LanguageModel>(
+    model: &M,
     dataset: &ExamDataset,
     batch_size: usize,
     seq_len: usize,
@@ -349,8 +350,8 @@ pub fn benchmark_inference(
     Ok(summarize_benchmark(durations, checksum))
 }
 
-fn evaluate_tokens(
-    model: &MultiScreenLm,
+fn evaluate_tokens<M: LanguageModel>(
+    model: &M,
     data: &[u32],
     seq_len: usize,
     device: &Device,
@@ -463,4 +464,23 @@ fn make_token_lm_batch(
         Tensor::from_vec(inputs, (batch_size, seq_len), device)?,
         Tensor::from_vec(targets, (batch_size, seq_len), device)?,
     ))
+}
+
+type SatRecord = (
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+);
+
+fn format_record(record: &SatRecord) -> String {
+    let (subject, prompt, a, b, c, d, e, answer) = record;
+    format!(
+        "Subject: {}\nQuestion: {}\nA. {}\nB. {}\nC. {}\nD. {}\nE. {}\nAnswer: {}",
+        subject, prompt, a, b, c, d, e, answer
+    )
 }

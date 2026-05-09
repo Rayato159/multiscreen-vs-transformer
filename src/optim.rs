@@ -82,18 +82,18 @@ impl AdamW {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{MultiScreenConfig, MultiScreenLm, cross_entropy_loss, make_batch};
+    use crate::multiscreen::{MultiscreenConfig, MultiscreenLm, cross_entropy_loss, make_batch};
 
     #[test]
     fn tiny_training_smoke_reduces_loss() -> Result<()> {
         let device = crate::runtime::default_device()?;
-        let mut config = MultiScreenConfig::tiny();
+        let mut config = MultiscreenConfig::tiny();
         config.seq_len = 8;
         config.layers = 1;
         config.tiles = 2;
         config.d_model = 16;
         config.d_value = 8;
-        let model = MultiScreenLm::new(config.clone(), &device)?;
+        let model = MultiscreenLm::new(config.clone(), &device)?;
         let mut optimizer = {
             let params = model.parameters();
             AdamW::new(&params, 5e-3, 0.0)?
