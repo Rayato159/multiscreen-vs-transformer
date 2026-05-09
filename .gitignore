@@ -1,0 +1,4 @@
+/target/
+/.python-packages/
+/.conda-pdf/
+/exam/*.pdf

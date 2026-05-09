@@ -1,0 +1,11 @@
+[package]
+name = "multiscreen-testing"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = []
+cuda = ["candle-core/cuda"]
+
+[dependencies]
+candle-core = "0.10.2"
