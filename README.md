@@ -184,29 +184,7 @@ Layer comparison:
 | Latest test accuracy | 21.38% | 22.57% |
 | Latest avg inference | 19.651 ms | 5.709 ms |
 
-## Papers 📚
-
-The PDFs are intentionally not assumed to exist in git.
-
-If you have them locally, `papers/` is fine as a personal stash, but the repo does not depend on them:
-
-```text
-papers/ScreeningIsEnough.pdf
-papers/AttentionIsAllYouNeed.pdf
-```
-
-## Verified ✅
-
-Last verification:
-
-```text
-cargo fmt --check
-cargo test
-cargo test --features cuda
-```
-
-Result:
-
-```text
-11 passed; 0 failed
-```
+## References 📚
+- Screening Is Enough: https://arxiv.org/pdf/2604.01178
+- Attention Is All You Need: https://arxiv.org/pdf/1706.03762
+- SAT Questions and Answers for LLM: https://www.kaggle.com/datasets/trainingdatapro/sat-history-questions-and-answers
