@@ -1,6 +1,11 @@
 {
   "include": ["tools"],
-  "extraPaths": [".python-packages"],
+  "extraPaths": [
+    ".python-packages",
+    "D:\\SideProjects\\multiscreen-testing\\.python-packages",
+  ],
   "pythonVersion": "3.13",
-  "typeCheckingMode": "basic"
+  "typeCheckingMode": "basic",
+  "venvPath": ".",
+  "venv": ".python-packages",
 }

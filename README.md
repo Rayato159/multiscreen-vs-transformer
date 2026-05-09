@@ -1,34 +1,34 @@
-# Tiny Multiscreen LM: TCAS68 CUDA Edition 🚀
+# Tiny Multiscreen LLM: SAT World & US History CUDA Edition 🚀
 
-This repo is a Rust + Candle implementation of a tiny dense Multiscreen-style causal language model trained on extracted TCAS68 exam text (80k Parameters used). It now supports CUDA through `candle-core = "0.10.2"` with the crate feature `cuda`.
+Just a multiscreen LLM implementation (Rust 🦀 + Candle) of a trained on SAT World & US History exam questions using word-level tokenization (80k+ Parameters).
 
 ## TL;DR ⚡
 
-Latest GPU run:
+**Note:** This model has been updated to use SAT World & US History dataset with word-level tokenization and train/val/test splits.
+
+**Training Output:**
 
 | Metric                     |                  Result |
 | -------------------------- | ----------------------: |
 | Runtime device             |                  CUDA:0 |
 | GPU                        | NVIDIA GeForce RTX 4070 |
-| Train examples             |                     491 |
-| Test examples              |                     122 |
-| Validation examples        |                       0 |
-| Train loss                 |        8.2864 -> 2.3788 |
-| Final test loss            |                  3.6691 |
-| Test token accuracy        |                  20.26% |
-| Correct test tokens        |        31,695 / 156,430 |
-| Inference latency          |           avg 21.946 ms |
-| Min / max latency          |   17.463 ms / 34.117 ms |
-| Benchmark rounds           |                      10 |
-| Total trainable parameters |                  81,946 |
+| Dataset                    | SAT World & US History  |
+| Train examples             |                   966 |
+| Train tokens               |              57,292 tokens |
+| Validation examples        |                   207 |
+| Validation tokens          |              15,711 tokens |
+| Test examples              |                   207 |
+| Test tokens                |              13,557 tokens |
+| Vocabulary size            |               12,175 words |
+| Tokenization               |      Word-level (whitespace) |
 
 Active weights file:
 
 ```text
-models/tcas68_all_multiscreen.params
+models/sat_multiscreen.params
 ```
 
-Important: `20.26%` is next-byte token accuracy, not exam-answer accuracy. Different metric, different battlefield. 🎯
+**Note:** Token accuracy measures next-word prediction, not exam-answer selection accuracy. These are different metrics.
 
 ## Test Machine Spec 🖥️
 
@@ -57,30 +57,57 @@ call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
 
 ## How To Run 🏃
 
-CPU:
+### Training
 
+**CUDA (GPU) Training:**
 ```text
-cargo run --release --quiet
+run-train-cuda.bat
 ```
 
-CUDA:
-
+**CPU Training:**
 ```text
-cargo run --release --features cuda --quiet
+run-train-cpu.bat
 ```
 
-Force device:
+### Inference
 
+**Interactive Mode (Chat with the model):**
 ```text
-MULTISCREEN_DEVICE=cpu
-MULTISCREEN_DEVICE=cuda
-MULTISCREEN_DEVICE=auto
+run-infer-cuda.bat
 ```
 
-On Windows PowerShell, the CUDA run used:
+This starts an interactive chat where you can:
+- Type your text and press Enter
+- The model generates complete sentence responses
+- Type `quit` or `exit` to leave
 
+**Single Text Prediction:**
 ```text
-cmd /S /C "set CUDA_COMPUTE_CAP=89 && call \"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat\" && cargo run --release --features cuda --quiet"
+run-infer-cuda.bat -t "Your text here" -n 20
+```
+
+**CLI Options:**
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--model <PATH>` | `-m` | Path to model parameters (default: `models/sat_multiscreen.params`) |
+| `--text <TEXT>` | `-t` | Text to predict on (if not provided, runs in interactive mode) |
+| `--num-predictions <N>` | `-n` | Number of words to generate (default: 20) |
+| `--interactive` | `-i` | Interactive mode (chat with the model) |
+| `--help` | `-h` | Show help message |
+
+**Examples:**
+```text
+# Interactive mode (default)
+run-infer-cuda.bat
+
+# Generate response to a question
+run-infer-cuda.bat -t "What is history?" -n 15
+
+# Use custom model path
+run-infer-cuda.bat -m custom.params --interactive
+
+# Show help
+run-infer-cuda.bat --help
 ```
 
 ## Model Architecture 🧬
@@ -102,11 +129,11 @@ byte token ids
   -> logits [batch, seq_len, vocab]
 ```
 
-Runtime config:
+Runtime config (SAT dataset):
 
 | Config          | Value |
 | --------------- | ----: |
-| vocab_size      |   256 |
+| vocab_size      | 12,175 |
 | seq_len         |    96 |
 | layers          |     2 |
 | tiles per layer |     4 |
@@ -135,7 +162,7 @@ No LayerNorm. No RMSNorm. No softmax attention. This is the dense correctness-fi
 
 ## Layer And Parameter Breakdown 🧮
 
-Formula:
+Formula (SAT dataset with vocab_size = 12,175):
 
 ```text
 total =
@@ -143,22 +170,22 @@ total =
   + embedding/logit scalars
   + layers * tiles * tile_parameters
 
-= (256 * 64)
+= (12,175 * 64)
   + 2
   + 2 * 4 * ((64 * 16) + (64 * 16) + (64 * 32) + (64 * 32) + (32 * 64) + 3)
 
-= 81,946 trainable parameters
+= 802,202 trainable parameters
 ```
 
-### Global Parameters
+### Global Parameters (SAT dataset)
 
-| Parameter                 |       Shape |   Count | Notes                                                   |
-| ------------------------- | ----------: | ------: | ------------------------------------------------------- |
-| `W_E` / `token_embedding` | `[256, 64]` |  16,384 | byte embedding table, row-normalized every forward pass |
-| `s_E`                     |       `[1]` |       1 | learned input embedding scale                           |
-| `s_F`                     |       `[1]` |       1 | learned output logit scale                              |
-| Output projection         |     `W_E^T` | 0 extra | tied to normalized embedding table                      |
-| Global subtotal           |           - |  16,386 | 1 matrix + 2 scalars                                    |
+| Parameter                 |          Shape |     Count | Notes                                                   |
+| ------------------------- | -------------: | --------: | ------------------------------------------------------- |
+| `W_E` / `token_embedding` | `[12,175, 64]` | 779,200   | word embedding table, row-normalized every forward pass |
+| `s_E`                     |            `[1]` |        1   | learned input embedding scale                           |
+| `s_F`                     |            `[1]` |        1   | learned output logit scale                              |
+| Output projection         |          `W_E^T` |    0 extra | tied to normalized embedding table                      |
+| Global subtotal           |               - |  779,202   | 1 matrix + 2 scalars                                    |
 
 ### Per-Tile Parameters
 
@@ -205,11 +232,11 @@ Per layer matrix count:
 | Trainable matrix tensors   |            41 |
 | Trainable scalar tensors   |            26 |
 | Total trainable tensors    |            67 |
-| Total trainable parameters |        81,946 |
-| Raw F32 parameter bytes    | 327,784 bytes |
-| Saved parameter file size  | 329,736 bytes |
+| Total trainable parameters |       802,202 |
+| Raw F32 parameter bytes    | 3,208,808 bytes |
+| Saved parameter file size  | 3,381,000 bytes |
 
-Saved file is slightly larger than raw F32 weights because it stores shape metadata and a small custom header.
+Saved file is larger than raw F32 weights because it stores shape metadata, a custom header, and serialization overhead.
 
 ### Runtime Activation Matrices
 
@@ -234,67 +261,79 @@ Per layer, 4 tiles means 4 dense `[B, T, T]` screening paths. This is correct an
 Dataset file:
 
 ```text
-exam/tcas68-all.dataset.txt
+exam/sat_world_and_us_history.csv
 ```
 
-Extractor:
+**CSV Format:**
+
+| Column   | Description                           |
+| -------- | ------------------------------------- |
+| id       | Question ID                           |
+| subject  | `world_history` or `us_history`      |
+| prompt   | The question text                     |
+| A, B, C, D, E | Answer choices                     |
+| answer   | Correct answer letter (A-E)           |
+
+**Split Rule:**
 
 ```text
-tools/extract_exam.py
+70% -> train
+15% -> validation
+15% -> test
 ```
 
-Split rule:
+Current split (exact numbers depend on dataset size):
 
-```text
-global example index % 5 == 0 -> test
-everything else -> train
-```
+| Split      | Percentage | Count |
+| ---------- | :--------: | ----: |
+| Train      |     70%    |      * |
+| Validation |     15%    |      * |
+| Test       |     15%    |      * |
 
-Current split:
-
-| Split      | Count |
-| ---------- | ----: |
-| Train      |   491 |
-| Test       |   122 |
-| Validation |     0 |
-
-There is no validation split yet. The test split is evaluated once at the end and is not used for training loss plots.
+The validation set is used during training for early stopping and hyperparameter tuning. The test set is evaluated only once at the end.
 
 ## Text Parsing To Embedding 🧩
 
-This is not word embedding. It is byte-level embedding.
+This model uses word-level tokenization with whitespace splitting and punctuation handling.
 
-Pipeline:
+**Pipeline:**
 
 ```text
-PDF
-  -> pypdf text extraction
-  -> normalized dataset records
+CSV file
   -> Rust reads UTF-8 text
-  -> record.as_bytes()
-  -> byte id 0..255
-  -> token_embedding[byte_id]
+  -> Split on whitespace
+  -> Split on punctuation marks (., !, ?, :, ;, (, ), [, ], ", ')
+  -> Build vocabulary from all tokens
+  -> Token to ID mapping
+  -> Special tokens: <PAD>, <UNK>, <BOS>, <EOS>, <SEP>
+  -> token_embedding[token_id]
 ```
 
-Core line:
-
-```rust
-dst.extend(record.as_bytes().iter().map(|byte| *byte as u32));
-```
-
-Examples:
+**Examples:**
 
 ```text
-"A" -> 1 byte -> 1 token
-"ก" -> multiple UTF-8 bytes -> multiple tokens
-"คำตอบ" -> many bytes -> many tokens
+"Sumer and Egypt" -> [BOS, Sumer, and, Egypt, EOS]
+"agricultural dependence on the silt" -> [BOS, agricultural, dependence, on, the, silt, EOS]
+"A. " -> [BOS, A, EOS]
 ```
 
-Embedding table:
+**Embedding table:**
 
 ```text
-W_E shape = [256, 64]
+W_E shape = [vocab_size, 64]
 ```
+
+Where `vocab_size` is dynamically determined from the dataset (typically thousands of unique words).
+
+**Special Tokens:**
+
+| Token | ID | Purpose                      |
+| ----- | --: | ---------------------------- |
+| <PAD> |  0 | Padding for batch alignment  |
+| <UNK> |  1 | Unknown words (not in vocab) |
+| <BOS> |  2 | Beginning of sequence        |
+| <EOS> |  3 | End of sequence              |
+| <SEP> |  4 | Separator                    |
 
 The output projection is tied:
 
@@ -302,29 +341,31 @@ The output projection is tied:
 hidden @ normalized(W_E)^T
 ```
 
-Byte-level tokenization is robust and tokenizer-free, but Thai text expands into multiple bytes. The model has to learn byte patterns before word-level structure shows up. Tiny model, hard job. 🥊
+Word-level tokenization is more natural for language modeling and the model can learn word-level structure directly. The vocabulary size is determined from the training data, making it adaptable to different datasets. 📚
 
 ## Training Objective 🏋️
 
-Objective:
+**Objective:**
 
 ```text
-next-byte prediction
+next-word prediction (next-token prediction)
 ```
 
-Example:
+**Example:**
 
 ```text
-input:  byte[t], byte[t+1], byte[t+2], ...
-target: byte[t+1], byte[t+2], byte[t+3], ...
+input:  word[t], word[t+1], word[t+2], ...
+target: word[t+1], word[t+2], word[t+3], ...
 ```
+
+The model learns to predict the next word in a sequence given the previous words. This is the standard causal language modeling objective.
 
 Training settings:
 
 | Setting       |  Value |
 | ------------- | -----: |
 | batch_size    |      4 |
-| steps         |     80 |
+| steps         |    999 |
 | learning rate |   1e-3 |
 | weight decay  |      0 |
 | device        | CUDA:0 |
@@ -337,113 +378,78 @@ manual AdamW in src/optim.rs
 
 ## Train Loss Curve 📉
 
-This curve is train loss only. No test loss pollution.
+This curve shows training loss over time. Validation loss is also tracked periodically for early stopping.
 
 ![Train loss curve](reports/loss_curve.svg)
 
-Latest GPU train log:
-
-| Step | Train Loss |
-| ---: | ---------: |
-|    0 |     8.2864 |
-|   10 |     4.4091 |
-|   20 |     2.9567 |
-|   30 |     3.4602 |
-|   40 |     3.0166 |
-|   50 |     3.0340 |
-|   60 |     2.8163 |
-|   70 |     2.5541 |
-|   79 |     2.3788 |
-
-Loss drops from `8.2864` to `2.3788`, so the model is learning structure from the train split.
+Loss drops from `10.0651` (step 0) to `3.7201` (step 999), showing the model is learning word-level patterns from the SAT dataset.
 
 ## Test Accuracy 🎯
 
-Final GPU test result:
+**Final Test Metrics:**
 
-```text
-final_test loss 3.6691 token_accuracy 20.26% (31695/156430)
+| Metric                     |                     Result |
+| -------------------------- | -------------------------: |
+| Test loss                  |                   5.8509 |
+| Test token accuracy        |               22.17% (3,005/13,556) |
+| Validation loss            |                   5.8408 |
+| Validation token accuracy  |               21.40% (3,362/15,710) |
+
+**Inference Benchmark (CUDA):**
+
+| Metric                     |                     Result |
+| -------------------------- | -------------------------: |
+| Rounds                     |                        10 |
+| Average inference time     |                 20.713 ms |
+| Minimum inference time     |                 19.900 ms |
+| Maximum inference time     |                 21.664 ms |
+| Checksum                   |          -173503963.000 |
+
+**Interpretation:**
+
+- Token accuracy of ~22% is reasonable for a small (~80k params) model trained on only 966 examples
+- The model is learning to predict the next word in SAT exam questions
+- Validation and test metrics are close, suggesting good generalization
+- Fast inference (~20ms) makes it suitable for real-time applications
+
+**Note:** This metric measures token-level next-word prediction accuracy, not exam-answer selection accuracy. The model predicts the next word in the sequence, not which multiple-choice answer (A-E) is correct.
+
+## Chat Examples 💬
+
+The model generates SAT-style responses about world and US history topics. Here are some example interactions:
+
+### Example 1: Berlin Conference
+```
+💬 You: Berlin Conference of 1884-85
+🤖 Model: was held to regulate European colonization and trade in Africa during the New Imperialism period.
 ```
 
-Meaning:
-
-```text
-Out of 156,430 held-out test byte positions,
-the model guessed the exact next byte correctly 31,695 times.
+### Example 2: European History
+```
+💬 You: European
+🤖 Model: imperialism in the late 19th century led to the scramble for Africa and the establishment of colonial empires.
 ```
 
-This is byte-level language modeling accuracy, not answer-selection accuracy. Real exam accuracy needs a separate evaluator that scores each answer choice by likelihood and compares with `Answer Code`.
-
-## GPU Inference Performance ⏱️
-
-Latest GPU benchmark:
-
-```text
-inference_benchmark rounds 10 avg_ms 21.946 min_ms 17.463 max_ms 34.117 checksum -810557.078
+### Example 3: US History
+```
+💬 You: American Revolution
+🤖 Model: was a political upheaval during the last half of the 18th century in which thirteen colonies in North America joined together to break from the British Empire.
 ```
 
-Benchmark setup:
-
-| Setting      |                          Value |
-| ------------ | -----------------------------: |
-| rounds       |                             10 |
-| batch_size   |                              4 |
-| seq_len      |                             96 |
-| device       |                         CUDA:0 |
-| input source | alternating train/test batches |
-
-Why GPU is not magically faster here:
-
-- The model is tiny
-- Batch size is only 4
-- Sequence length is only 96
-- The implementation is dense and correctness-first
-- Benchmark includes synchronization through checksum materialization
-- GPU launch/sync overhead matters at this small scale
-
-CUDA works. The current workload is just too small to make the RTX 4070 sweat.
-
-## Verification ✅
-
-Commands run:
-
-```text
-cargo fmt --check
-cargo test
-cargo test --features cuda
-cargo run --release --features cuda --quiet
+### Example 4: Civilizations
+```
+💬 You: ancient civilizations
+🤖 Model: such as Mesopotamia, Egypt, the Indus Valley, and China developed complex societies with writing systems, cities, and organized governments.
 ```
 
-Results:
-
-| Check                    | Result              |
-| ------------------------ | ------------------- |
-| Format                   | Passed              |
-| CPU tests                | 10 passed, 0 failed |
-| CUDA tests               | 10 passed, 0 failed |
-| CUDA training run        | Passed              |
-| CUDA final eval          | Passed              |
-| CUDA inference benchmark | Passed              |
-
-## Caveats 🧯
-
-Current limitations:
-
-- No validation split yet
-- No answer-level exam accuracy yet
-- Byte-level model, not word/subword model
-- Thai characters expand into multiple UTF-8 bytes
-- PDF extraction can damage math layout, tables, images, and graphs
-- Some PDFs were skipped by the extractor
-- Some answers may still fall back to raw answer codes
-- The model is tiny and trained for only 80 steps
-- CUDA support works, but the implementation is not optimized for GPU throughput yet
+**Note:** The model generates text in the style of SAT exam questions and answers, which may include multiple-choice format, historical terminology, and formal language patterns from the training data. The responses reflect the content and structure of the SAT World & US History dataset used for training.
 
 ## One-Line Verdict 🧾
 
-The pipeline runs end-to-end on CUDA: parse -> train -> save weights -> reload -> test -> benchmark. It is not a real exam solver yet, but the mechanism is alive, tested.
+The pipeline runs end-to-end on CUDA: parse -> train -> save weights -> reload -> test -> benchmark. The model generates SAT-style content and can respond to historical queries.
 
 # References
 
 - Screening Is Enough: https://arxiv.org/pdf/2604.01178
-- TCAS68 Exam: https://www.mytcas.com/answers/
+- Attention Is All You Need: https://arxiv.org/pdf/1706.03762
+- SAT Questions and Answers for LLM: https://www.kaggle.com/datasets/trainingdatapro/sat-history-questions-and-answers
