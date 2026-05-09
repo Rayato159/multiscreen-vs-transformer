@@ -71,12 +71,6 @@ Type whatever historical vibe you want and hit Enter. The model will respond wit
 
 **Pro tip:** Type `quit` or `exit` to dip out.
 
-### Single Prediction (no chat needed)
-```batch
-run-infer-cuda.bat -t "Berlin Conference" -n 20
-```
-Generate a quick response without the whole chat experience.
-
 ### CLI Options (if you wanna customize)
 | Option | What it do |
 |--------|------------|
