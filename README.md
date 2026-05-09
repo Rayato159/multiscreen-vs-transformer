@@ -55,60 +55,36 @@ set CUDA_COMPUTE_CAP=89
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 ```
 
-## How To Run 🏃
+## Quick Start 💨
 
-### Training
-
-**CUDA (GPU) Training:**
-```text
+### Train the Model (GPU only, sorry CPU fam 🖥️)
+```batch
 run-train-cuda.bat
 ```
+Just sit back and let the model learn for ~999 steps. Go get some boba or something.
 
-**CPU Training:**
-```text
-run-train-cpu.bat
-```
-
-### Inference
-
-**Interactive Mode (Chat with the model):**
-```text
+### Chat with the Model (the fun part) 🎮
+```batch
 run-infer-cuda.bat
 ```
+Type whatever historical vibe you want and hit Enter. The model will respond with SAT energy.
 
-This starts an interactive chat where you can:
-- Type your text and press Enter
-- The model generates complete sentence responses
-- Type `quit` or `exit` to leave
+**Pro tip:** Type `quit` or `exit` to dip out.
 
-**Single Text Prediction:**
-```text
-run-infer-cuda.bat -t "Your text here" -n 20
+### Single Prediction (no chat needed)
+```batch
+run-infer-cuda.bat -t "Berlin Conference" -n 20
 ```
+Generate a quick response without the whole chat experience.
 
-**CLI Options:**
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--model <PATH>` | `-m` | Path to model parameters (default: `models/sat_multiscreen.params`) |
-| `--text <TEXT>` | `-t` | Text to predict on (if not provided, runs in interactive mode) |
-| `--num-predictions <N>` | `-n` | Number of words to generate (default: 20) |
-| `--interactive` | `-i` | Interactive mode (chat with the model) |
-| `--help` | `-h` | Show help message |
-
-**Examples:**
-```text
-# Interactive mode (default)
-run-infer-cuda.bat
-
-# Generate response to a question
-run-infer-cuda.bat -t "What is history?" -n 15
-
-# Use custom model path
-run-infer-cuda.bat -m custom.params --interactive
-
-# Show help
-run-infer-cuda.bat --help
-```
+### CLI Options (if you wanna customize)
+| Option | What it do |
+|--------|------------|
+| `-m <PATH>` | Custom model path (default: `models/sat_multiscreen.params`) |
+| `-t "TEXT"` | Text to generate from |
+| `-n <N>` | Number of words (default: 20) |
+| `-i` | Force interactive mode |
+| `-h` | Show help (for when you're lost) |
 
 ## Model Architecture 🧬
 
