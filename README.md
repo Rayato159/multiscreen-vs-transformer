@@ -1,5 +1,9 @@
 # Tiny Multiscreen vs Transformer LM 🚀
 
+| Multiscreen demo | Transformer demo |
+| --- | --- |
+| ![Multiscreen demo](multiscreen_demo.gif) | ![Transformer demo](transformer_demo.gif) |
+
 Tiny Rust/Candle playground for comparing two causal language models on the same SAT-style next-token task.
 
 - 🌀 **Multiscreen** lives in `src/multiscreen.rs`
