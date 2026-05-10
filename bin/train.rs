@@ -69,7 +69,7 @@ fn print_help() {
     );
     println!("  --steps, -s <N>      Number of training steps (default: 1000)");
     println!("  --weights, -w <PATH> Checkpoint output path (default depends on model)");
-    println!("  --dataset, -d <PATH> Dataset CSV path");
+    println!("  --dataset, -d <PATH> Khan Academy parquet dataset path");
     println!("  --help, -h           Show this help");
     println!();
     println!("Examples:");

@@ -1,66 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="980" height="540" viewBox="0 0 980 540" role="img" aria-labelledby="title desc">
-  <title id="title">Multiscreen vs Transformer training loss</title>
-  <desc id="desc">Training cross entropy loss sampled during the latest CUDA comparison run for Multiscreen and Transformer models.</desc>
-  <rect width="980" height="540" fill="#fbfaf7"/>
-  <text x="80" y="42" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#18181b">Training Loss: Multiscreen vs Transformer</text>
-  <text x="80" y="66" font-family="Arial, sans-serif" font-size="13" fill="#52525b">CUDA comparison run, 1000 steps, batch 4, seq_len 96, AdamW lr=1e-3</text>
-
-  <rect x="80" y="80" width="840" height="340" fill="#ffffff" stroke="#d4d4d8"/>
-
-  <g font-family="Arial, sans-serif" font-size="12" fill="#71717a">
-    <line x1="80" y1="420" x2="920" y2="420" stroke="#e4e4e7"/>
-    <text x="52" y="424">3.5</text>
-    <line x1="80" y1="368" x2="920" y2="368" stroke="#e4e4e7"/>
-    <text x="58" y="372">4.5</text>
-    <line x1="80" y1="316" x2="920" y2="316" stroke="#e4e4e7"/>
-    <text x="58" y="320">5.5</text>
-    <line x1="80" y1="263" x2="920" y2="263" stroke="#e4e4e7"/>
-    <text x="58" y="267">6.5</text>
-    <line x1="80" y1="211" x2="920" y2="211" stroke="#e4e4e7"/>
-    <text x="58" y="215">7.5</text>
-    <line x1="80" y1="159" x2="920" y2="159" stroke="#e4e4e7"/>
-    <text x="58" y="163">8.5</text>
-    <line x1="80" y1="106" x2="920" y2="106" stroke="#e4e4e7"/>
-    <text x="58" y="110">9.5</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420" role="img" aria-label="Training loss curve for Multiscreen and Transformer">
+  <rect width="720" height="420" fill="#101418"/>
+  <text x="70" y="28" fill="#f4f6f8" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">Khan Academy training loss, CUDA, 300 steps</text>
+  <line x1="70" y1="340" x2="660" y2="340" stroke="#7b8794" stroke-width="1"/>
+  <line x1="70" y1="40" x2="70" y2="340" stroke="#7b8794" stroke-width="1"/>
+  <g fill="#aeb8c2" font-family="Segoe UI, Arial, sans-serif" font-size="12">
+    <text x="46" y="344">2</text>
+    <text x="46" y="269">4</text>
+    <text x="46" y="194">6</text>
+    <text x="46" y="119">8</text>
+    <text x="40" y="44">10</text>
+    <text x="65" y="364">0</text>
+    <text x="256" y="364">100</text>
+    <text x="454" y="364">200</text>
+    <text x="648" y="364">299</text>
   </g>
-
-  <g font-family="Arial, sans-serif" font-size="12" fill="#71717a">
-    <line x1="80" y1="420" x2="80" y2="426" stroke="#18181b"/>
-    <text x="76" y="444">0</text>
-    <line x1="248" y1="420" x2="248" y2="426" stroke="#18181b"/>
-    <text x="237" y="444">200</text>
-    <line x1="416" y1="420" x2="416" y2="426" stroke="#18181b"/>
-    <text x="405" y="444">400</text>
-    <line x1="585" y1="420" x2="585" y2="426" stroke="#18181b"/>
-    <text x="574" y="444">600</text>
-    <line x1="753" y1="420" x2="753" y2="426" stroke="#18181b"/>
-    <text x="742" y="444">800</text>
-    <line x1="920" y1="420" x2="920" y2="426" stroke="#18181b"/>
-    <text x="910" y="444">999</text>
+  <g stroke="#27313a" stroke-width="1">
+    <line x1="70" y1="265" x2="660" y2="265"/>
+    <line x1="70" y1="190" x2="660" y2="190"/>
+    <line x1="70" y1="115" x2="660" y2="115"/>
+    <line x1="267.3" y1="40" x2="267.3" y2="340"/>
+    <line x1="464.6" y1="40" x2="464.6" y2="340"/>
   </g>
-
-  <line x1="80" y1="420" x2="920" y2="420" stroke="#18181b" stroke-width="1.5"/>
-  <line x1="80" y1="80" x2="80" y2="420" stroke="#18181b" stroke-width="1.5"/>
-
-  <polyline fill="none" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points="80.0,90.5 164.1,217.2 248.2,296.9 332.3,311.1 416.3,364.2 500.4,361.9 584.5,356.3 668.6,388.6 752.7,367.8 836.8,379.3 920.0,406.5"/>
-  <polyline fill="none" stroke="#f97316" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points="80.0,121.9 164.1,244.5 248.2,263.6 332.3,265.9 416.3,303.2 500.4,314.9 584.5,307.7 668.6,334.9 752.7,321.9 836.8,337.4 920.0,361.7"/>
-
-  <g fill="#2563eb">
-    <circle cx="80.0" cy="90.5" r="3"/><circle cx="164.1" cy="217.2" r="3"/><circle cx="248.2" cy="296.9" r="3"/><circle cx="332.3" cy="311.1" r="3"/><circle cx="416.3" cy="364.2" r="3"/><circle cx="500.4" cy="361.9" r="3"/><circle cx="584.5" cy="356.3" r="3"/><circle cx="668.6" cy="388.6" r="3"/><circle cx="752.7" cy="367.8" r="3"/><circle cx="836.8" cy="379.3" r="3"/><circle cx="920.0" cy="406.5" r="3"/>
+  <polyline fill="none" stroke="#35d07f" stroke-width="3" points="70,51.7 267.3,193.9 464.6,182.8 660,328.6"/>
+  <polyline fill="none" stroke="#61a8ff" stroke-width="3" points="70,76.6 267.3,186.4 464.6,144.9 660,201.8"/>
+  <g>
+    <circle cx="70" cy="51.7" r="4" fill="#35d07f"/>
+    <circle cx="267.3" cy="193.9" r="4" fill="#35d07f"/>
+    <circle cx="464.6" cy="182.8" r="4" fill="#35d07f"/>
+    <circle cx="660" cy="328.6" r="4" fill="#35d07f"/>
+    <circle cx="70" cy="76.6" r="4" fill="#61a8ff"/>
+    <circle cx="267.3" cy="186.4" r="4" fill="#61a8ff"/>
+    <circle cx="464.6" cy="144.9" r="4" fill="#61a8ff"/>
+    <circle cx="660" cy="201.8" r="4" fill="#61a8ff"/>
   </g>
-  <g fill="#f97316">
-    <circle cx="80.0" cy="121.9" r="3"/><circle cx="164.1" cy="244.5" r="3"/><circle cx="248.2" cy="263.6" r="3"/><circle cx="332.3" cy="265.9" r="3"/><circle cx="416.3" cy="303.2" r="3"/><circle cx="500.4" cy="314.9" r="3"/><circle cx="584.5" cy="307.7" r="3"/><circle cx="668.6" cy="334.9" r="3"/><circle cx="752.7" cy="321.9" r="3"/><circle cx="836.8" cy="337.4" r="3"/><circle cx="920.0" cy="361.7" r="3"/>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="13">
+    <rect x="475" y="52" width="152" height="56" rx="8" fill="#172029" stroke="#2f3b46"/>
+    <circle cx="492" cy="72" r="5" fill="#35d07f"/>
+    <text x="506" y="76" fill="#f4f6f8">Multiscreen</text>
+    <circle cx="492" cy="94" r="5" fill="#61a8ff"/>
+    <text x="506" y="98" fill="#f4f6f8">Transformer</text>
   </g>
-
-  <rect x="616" y="94" width="286" height="92" fill="#ffffff" stroke="#d4d4d8" rx="6"/>
-  <line x1="635" y1="124" x2="685" y2="124" stroke="#2563eb" stroke-width="4"/>
-  <text x="697" y="129" font-family="Arial, sans-serif" font-size="14" fill="#18181b">Multiscreen: 9.7998 -> 3.7590</text>
-  <line x1="635" y1="158" x2="685" y2="158" stroke="#f97316" stroke-width="4"/>
-  <text x="697" y="163" font-family="Arial, sans-serif" font-size="14" fill="#18181b">Transformer: 9.1991 -> 4.6138</text>
-
-  <text x="465" y="492" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#3f3f46">Training step</text>
-  <g transform="translate(24 270) rotate(-90)">
-    <text text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#3f3f46">Train cross-entropy loss</text>
-  </g>
-  <text x="80" y="516" font-family="Arial, sans-serif" font-size="12" fill="#71717a">Source: latest direct CUDA comparison output, sampled every 100 steps plus final step 999.</text>
+  <text x="325" y="398" fill="#aeb8c2" font-family="Segoe UI, Arial, sans-serif" font-size="12">step</text>
+  <text x="14" y="196" fill="#aeb8c2" font-family="Segoe UI, Arial, sans-serif" font-size="12" transform="rotate(-90 14 196)">train loss</text>
 </svg>

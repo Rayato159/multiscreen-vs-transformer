@@ -1,5 +1,5 @@
 pub mod cli;
-pub mod exam;
+pub mod dataset;
 pub mod lm;
 pub mod model;
 pub mod model_kind;
@@ -10,7 +10,10 @@ pub mod runtime;
 pub mod transformer;
 
 use candle_core::{Device, Result};
-use exam::{ExamDataset, benchmark_inference, evaluate_test_metrics, evaluate_val_metrics};
+use dataset::{
+    DEFAULT_EVAL_TOKEN_LIMIT, DEFAULT_TOKENIZER_PATH, TextDataset, benchmark_inference,
+    evaluate_test_metrics, evaluate_val_metrics,
+};
 use lm::TrainableLanguageModel;
 use model_kind::ModelKind;
 use multiscreen::{MultiscreenConfig, MultiscreenLm, cross_entropy_loss};
@@ -18,7 +21,7 @@ use optim::AdamW;
 use runtime::{default_device, device_label};
 use transformer::{TransformerConfig, TransformerLm};
 
-pub const DEFAULT_DATASET_PATH: &str = "exam/sat_world_and_us_history.csv";
+pub const DEFAULT_DATASET_PATH: &str = "dataset/khanacademy.parquet";
 pub const DEFAULT_SEQ_LEN: usize = 96;
 pub const DEFAULT_BATCH_SIZE: usize = 4;
 pub const DEFAULT_TRAIN_STEPS: usize = 1000;
@@ -63,7 +66,8 @@ pub fn run_training() -> Result<()> {
 
 pub fn run_training_with_config(config: TrainingConfig) -> Result<ModelRunMetrics> {
     let device = default_device()?;
-    let dataset = ExamDataset::from_file(&config.dataset_path)?;
+    let dataset = TextDataset::from_file(&config.dataset_path)?;
+    dataset.save_tokenizer(DEFAULT_TOKENIZER_PATH)?;
     let param_path = config
         .param_path
         .as_deref()
@@ -73,6 +77,7 @@ pub fn run_training_with_config(config: TrainingConfig) -> Result<ModelRunMetric
     print_dataset_summary(&dataset);
     println!("model: {}", config.model_kind.display_name());
     println!("training steps: {}", config.steps);
+    println!("tokenizer: {DEFAULT_TOKENIZER_PATH}");
     println!("checkpoint: {param_path}");
 
     match config.model_kind {
@@ -87,11 +92,13 @@ pub fn run_training_with_config(config: TrainingConfig) -> Result<ModelRunMetric
 
 pub fn run_comparison(steps: usize) -> Result<Vec<ModelRunMetrics>> {
     let device = default_device()?;
-    let dataset = ExamDataset::from_file(DEFAULT_DATASET_PATH)?;
+    let dataset = TextDataset::from_file(DEFAULT_DATASET_PATH)?;
+    dataset.save_tokenizer(DEFAULT_TOKENIZER_PATH)?;
 
     println!("device: {}", device_label(&device));
     print_dataset_summary(&dataset);
     println!("comparison steps: {steps}");
+    println!("tokenizer: {DEFAULT_TOKENIZER_PATH}");
 
     let multiscreen_config = multiscreen_config(dataset.vocab_size(), DEFAULT_SEQ_LEN);
     let multiscreen = MultiscreenLm::new(multiscreen_config.clone(), &device)?;
@@ -104,6 +111,11 @@ pub fn run_comparison(steps: usize) -> Result<Vec<ModelRunMetrics>> {
         DEFAULT_SEQ_LEN,
         &device,
     )?;
+    multiscreen.save_parameters(ModelKind::Multiscreen.default_param_path())?;
+    println!(
+        "saved parameters: {}",
+        ModelKind::Multiscreen.default_param_path()
+    );
 
     let transformer_config = transformer_config(dataset.vocab_size(), DEFAULT_SEQ_LEN);
     let transformer = TransformerLm::new(transformer_config.clone(), &device)?;
@@ -116,12 +128,17 @@ pub fn run_comparison(steps: usize) -> Result<Vec<ModelRunMetrics>> {
         DEFAULT_SEQ_LEN,
         &device,
     )?;
+    transformer.save_parameters(ModelKind::Transformer.default_param_path())?;
+    println!(
+        "saved parameters: {}",
+        ModelKind::Transformer.default_param_path()
+    );
 
     Ok(vec![multiscreen_metrics, transformer_metrics])
 }
 
 fn run_multiscreen_training(
-    dataset: &ExamDataset,
+    dataset: &TextDataset,
     device: &Device,
     steps: usize,
     param_path: &str,
@@ -157,7 +174,7 @@ fn run_multiscreen_training(
 }
 
 fn run_transformer_training(
-    dataset: &ExamDataset,
+    dataset: &TextDataset,
     device: &Device,
     steps: usize,
     param_path: &str,
@@ -195,7 +212,7 @@ fn run_transformer_training(
 fn train_evaluate_model<M: TrainableLanguageModel>(
     name: &'static str,
     model: &M,
-    dataset: &ExamDataset,
+    dataset: &TextDataset,
     steps: usize,
     batch_size: usize,
     seq_len: usize,
@@ -238,7 +255,7 @@ fn train_evaluate_model<M: TrainableLanguageModel>(
 fn train_model<M: TrainableLanguageModel>(
     name: &'static str,
     model: &M,
-    dataset: &ExamDataset,
+    dataset: &TextDataset,
     steps: usize,
     batch_size: usize,
     seq_len: usize,
@@ -293,7 +310,7 @@ fn train_model<M: TrainableLanguageModel>(
 fn summarize_saved_model<M: TrainableLanguageModel>(
     name: &'static str,
     model: &M,
-    dataset: &ExamDataset,
+    dataset: &TextDataset,
     final_train_loss: f32,
     batch_size: usize,
     seq_len: usize,
@@ -351,9 +368,9 @@ fn transformer_config(vocab_size: usize, seq_len: usize) -> TransformerConfig {
     config
 }
 
-fn print_dataset_summary(dataset: &ExamDataset) {
+fn print_dataset_summary(dataset: &TextDataset) {
     println!(
-        "loaded SAT dataset: {} train examples ({} tokens), {} val examples ({} tokens), {} test examples ({} tokens)",
+        "loaded Khan Academy dataset: {} train examples ({} tokens), {} val examples ({} tokens), {} test examples ({} tokens)",
         dataset.train_examples(),
         dataset.train_tokens(),
         dataset.val_examples(),
@@ -361,5 +378,6 @@ fn print_dataset_summary(dataset: &ExamDataset) {
         dataset.test_examples(),
         dataset.test_tokens()
     );
-    println!("vocabulary size: {}", dataset.vocab_size());
+    println!("tokenizer vocabulary size: {}", dataset.vocab_size());
+    println!("validation/test metrics use the first {DEFAULT_EVAL_TOKEN_LIMIT} tokens per split");
 }

@@ -29,8 +29,8 @@ impl ModelKind {
 
     pub fn default_param_path(self) -> &'static str {
         match self {
-            Self::Multiscreen => "models/sat_multiscreen.params",
-            Self::Transformer => "models/sat_transformer.params",
+            Self::Multiscreen => "models/khanacademy_multiscreen.params",
+            Self::Transformer => "models/khanacademy_transformer.params",
         }
     }
 }
