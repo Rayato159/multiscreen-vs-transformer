@@ -14,33 +14,18 @@ Tiny Rust/Candle playground for comparing two causal language models on the same
 
 ## Quick start ⚡
 
-PowerShell CUDA one-liners:
+PowerShell CUDA train:
 
 ```powershell
 cmd /S /C "set CUDA_COMPUTE_CAP=89 && call ""C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"" && set MULTISCREEN_DEVICE=cuda && cargo run --release --features cuda --bin train -- --model multiscreen --steps 1000"
 cmd /S /C "set CUDA_COMPUTE_CAP=89 && call ""C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"" && set MULTISCREEN_DEVICE=cuda && cargo run --release --features cuda --bin train -- --model transformer --steps 1000"
 ```
 
-If emoji output looks cursed in PowerShell, run this once in the same terminal:
-
-```powershell
-[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-$OutputEncoding = [System.Text.UTF8Encoding]::new()
-```
-
-PowerShell chat:
+PowerShell chat inference:
 
 ```powershell
 cmd /S /C "set CUDA_COMPUTE_CAP=89 && call ""C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"" && set MULTISCREEN_DEVICE=cuda && cargo run --release --features cuda --bin infer -- --model multiscreen -i"
 cmd /S /C "set CUDA_COMPUTE_CAP=89 && call ""C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"" && set MULTISCREEN_DEVICE=cuda && cargo run --release --features cuda --bin infer -- --model transformer -i"
-```
-
-CMD setup, if you are inside `cmd.exe` or a Developer Command Prompt:
-
-```text
-set CUDA_COMPUTE_CAP=89
-call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
-set MULTISCREEN_DEVICE=cuda
 ```
 
 Then CMD train:
@@ -61,12 +46,6 @@ Type your prompt, press Enter, and exit with:
 
 ```text
 quit
-```
-
-Quick sanity/test command:
-
-```text
-cargo test
 ```
 
 Benchmark command:
