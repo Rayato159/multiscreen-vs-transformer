@@ -198,6 +198,19 @@ impl HfTokenizer {
             .unwrap_or_else(|| format!("<id:{id}>"))
     }
 
+    pub fn display_token(&self, id: u32) -> String {
+        if self.is_special_id(id) {
+            return self.token_label(id);
+        }
+
+        let label = self.token_label(id);
+        let decoded = self
+            .tokenizer
+            .decode(&[id], false)
+            .unwrap_or_else(|_| label.clone());
+        sanitize_token_display(if decoded.is_empty() { &label } else { &decoded })
+    }
+
     pub fn is_special_id(&self, id: u32) -> bool {
         id == self.pad_id
             || id == self.unk_id
@@ -205,6 +218,13 @@ impl HfTokenizer {
             || id == self.eos_id
             || id == self.sep_id
     }
+}
+
+fn sanitize_token_display(token: &str) -> String {
+    token
+        .replace('\n', "\\n")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t")
 }
 
 impl TextDataset {

@@ -100,12 +100,12 @@ fn main() -> Result<()> {
 }
 
 fn print_cli_help() {
-    println!("Tiny LM - Inference CLI");
+    println!("🚀 Tiny LM - Inference CLI");
     println!();
-    println!("Usage:");
+    println!("⚡ Usage:");
     println!("  cargo run --release --features cuda --bin infer -- [OPTIONS]");
     println!();
-    println!("Options:");
+    println!("🛠️  Options:");
     println!(
         "  -m, --model <KIND|PATH>    Model kind (multiscreen/transformer), or legacy checkpoint path"
     );
@@ -118,7 +118,7 @@ fn print_cli_help() {
     println!("      --tokens-only          Print token IDs only in single-prompt mode");
     println!("  -h, --help                 Show this help message");
     println!();
-    println!("Examples:");
+    println!("🧪 Examples:");
     println!("  cargo run --release --features cuda --bin infer -- --model multiscreen -i");
     println!("  cargo run --release --features cuda --bin infer -- --model transformer -i");
     println!(

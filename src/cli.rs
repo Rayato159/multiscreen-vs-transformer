@@ -38,16 +38,16 @@ pub fn run_inference_cli(config: CliConfig) -> Result<()> {
         .as_deref()
         .unwrap_or_else(|| config.model_kind.default_param_path());
 
-    println!("Tiny LM - Inference CLI");
-    println!("Model: {}", config.model_kind.display_name());
-    println!("Device: {}", device_label(&device));
+    println!("🚀 Tiny LM - Inference CLI");
+    println!("🧠 Model: {}", config.model_kind.display_name());
+    println!("🖥️  Device: {}", device_label(&device));
     println!();
 
-    println!("Loading Hugging Face tokenizer: {DEFAULT_TOKENIZER_PATH}");
+    println!("🔤 Loading Hugging Face tokenizer: {DEFAULT_TOKENIZER_PATH}");
     let tokenizer = HfTokenizer::load_or_train(&config.dataset_path, DEFAULT_TOKENIZER_PATH)?;
     let vocab_size = tokenizer.vocab_size();
-    println!("Tokenizer ready, vocabulary size: {vocab_size}");
-    println!("Loading checkpoint: {param_path}");
+    println!("✅ Tokenizer ready, vocabulary size: {vocab_size}");
+    println!("📦 Loading checkpoint: {param_path}");
 
     match config.model_kind {
         ModelKind::Multiscreen => {
@@ -56,7 +56,7 @@ pub fn run_inference_cli(config: CliConfig) -> Result<()> {
             model_config.seq_len = crate::DEFAULT_SEQ_LEN;
             let model = MultiscreenLm::new(model_config, &device)?;
             model.load_parameters(param_path)?;
-            println!("Model loaded successfully.");
+            println!("✅ Model loaded successfully.");
             run_loaded_model(&model, &device, &config, &tokenizer)?;
         }
         ModelKind::Transformer => {
@@ -65,7 +65,7 @@ pub fn run_inference_cli(config: CliConfig) -> Result<()> {
             model_config.seq_len = crate::DEFAULT_SEQ_LEN;
             let model = TransformerLm::new(model_config, &device)?;
             model.load_parameters(param_path)?;
-            println!("Model loaded successfully.");
+            println!("✅ Model loaded successfully.");
             run_loaded_model(&model, &device, &config, &tokenizer)?;
         }
     }
@@ -96,15 +96,15 @@ fn run_single_prediction<M: LanguageModel>(
     tokenizer: &HfTokenizer,
 ) -> Result<()> {
     println!();
-    println!("Input text:");
+    println!("📝 Input text:");
     println!("\"{}\"", text);
-    println!("Text length: {} characters", text.len());
+    println!("📏 Text length: {} characters", text.len());
     println!();
 
     let tokens = tokenizer.encode_prompt(text)?;
-    println!("Token IDs: {:?}", tokens);
+    println!("🔢 Token IDs: {:?}", tokens);
     if !config.show_tokens_only {
-        println!("Decoded prompt: {}", tokenizer.decode(&tokens)?);
+        println!("🔎 Decoded prompt: {}", tokenizer.decode(&tokens)?);
     }
     println!();
 
@@ -115,8 +115,8 @@ fn run_single_prediction<M: LanguageModel>(
         .collect();
     let input_tensor = Tensor::new(clipped.as_slice(), device)?;
     let output = model.forward(&input_tensor.unsqueeze(0)?)?;
-    println!("Prediction output shape: {:?}", output.dims());
-    println!("Use interactive mode for token-by-token generation.");
+    println!("📐 Prediction output shape: {:?}", output.dims());
+    println!("💬 Use interactive mode for token-by-token generation.");
 
     Ok(())
 }
@@ -130,12 +130,12 @@ fn run_interactive_mode<M: LanguageModel>(
     use std::io::{self, Write};
 
     println!();
-    println!("Interactive mode");
+    println!("💬 Interactive mode");
     println!("Type text and press Enter to generate. Type 'quit' or 'exit' to leave.");
     println!();
 
     loop {
-        print!("You: ");
+        print!("🫵 You: ");
         io::stdout().flush()?;
 
         let mut input = String::new();
@@ -143,7 +143,7 @@ fn run_interactive_mode<M: LanguageModel>(
         let input = input.trim();
 
         if input.eq_ignore_ascii_case("quit") || input.eq_ignore_ascii_case("exit") {
-            println!("Goodbye.");
+            println!("👋 Goodbye.");
             break;
         }
 
@@ -159,7 +159,7 @@ fn run_interactive_mode<M: LanguageModel>(
             .collect();
 
         if input_tokens.is_empty() {
-            println!("No valid tokens found.");
+            println!("⚠️  No valid tokens found.");
             println!();
             continue;
         }
@@ -223,20 +223,19 @@ fn run_interactive_mode<M: LanguageModel>(
                 });
 
             if step < 3 {
+                let mut sampled_top = sampled_probs.clone();
+                sampled_top
+                    .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+                sampled_top.truncate(3);
                 println!(
-                    "  debug step {}: top tokens = {:?}",
+                    "  🔍 debug step {}: raw top tokens = {:?}",
                     step,
-                    top_3
-                        .iter()
-                        .map(|(id, prob)| {
-                            let token_str = tokenizer
-                                .token_label(*id as u32)
-                                .chars()
-                                .take(15)
-                                .collect::<String>();
-                            format!("'{}'({:.2}%)", token_str, prob * 100.0)
-                        })
-                        .collect::<Vec<_>>()
+                    format_token_probs(&top_3, tokenizer)
+                );
+                println!(
+                    "  🎲 debug step {}: sample candidates = {:?}",
+                    step,
+                    format_token_probs(&sampled_top, tokenizer)
                 );
             }
 
@@ -255,9 +254,23 @@ fn run_interactive_mode<M: LanguageModel>(
             response
         };
 
-        println!("Model: {}", response);
+        println!("🤖 Model: {}", response);
         println!();
     }
 
     Ok(())
+}
+
+fn format_token_probs(items: &[(usize, f32)], tokenizer: &HfTokenizer) -> Vec<String> {
+    items
+        .iter()
+        .map(|(id, prob)| {
+            let token_str = tokenizer
+                .display_token(*id as u32)
+                .chars()
+                .take(15)
+                .collect::<String>();
+            format!("'{}'({:.2}%)", token_str, prob * 100.0)
+        })
+        .collect()
 }
